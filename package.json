@@ -6,25 +6,28 @@
 		"dev": "next dev -p 3030",
 		"build": "next build",
 		"start": "next start -p 3030",
-    "lint": "biome check app components hooks lib vitest.config.ts",
+		"lint": "biome check app components hooks lib vitest.config.ts",
 		"format": "biome format --write .",
 		"test": "vitest run",
+		"test:coverage": "vitest run --coverage",
 		"test:watch": "vitest"
 	},
 	"dependencies": {
-		"next": "^16.0.0",
+		"next": "^16.4.6",
 		"react": "^19.1.0",
 		"react-dom": "^19.1.0",
 		"tailwindcss": "^4.1.0"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "^2.0.0",
+		"@tailwindcss/postcss": "^4.3.5",
 		"@testing-library/react": "^16.3.3",
 		"@types/node": "26.6.6",
 		"@types/react": "^19.1.4",
 		"@types/react-dom": "^19.1.4",
+		"@vitest/coverage-v8": "^5.1.2",
 		"jsdom": "^31.0.1",
 		"typescript": "^5.9.3",
-		"vitest": "^3.2.4"
+		"vitest": "^5.1.1"
 	}
 }

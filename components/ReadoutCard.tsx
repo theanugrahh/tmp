@@ -5,59 +5,81 @@ interface ReadoutCardProps {
 	metrics: TypingMetrics;
 }
 
-interface StatProps {
-	label: string;
-	value: string;
-}
+const TONE_CLASS: Record<"good" | "warn" | "neutral", string> = {
+	good: "chip chip-good",
+	warn: "chip chip-warn",
+	neutral: "chip chip-accent",
+};
 
-function Stat({ label, value }: StatProps) {
-	return (
-		<div className="rounded-2xl border border-[var(--readout-border)] bg-[var(--readout-bg)] p-4">
-			<dt className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-				{label}
-			</dt>
-			<dd
-				className="mt-2 font-readout text-2xl font-semibold tabular-nums text-[var(--text)]"
-				style={{ fontVariantNumeric: "tabular-nums" }}
-			>
-				{value}
-			</dd>
-		</div>
-	);
+function round1(value: number): number {
+	return Math.round(value * 10) / 10;
 }
 
 export function ReadoutCard({ readout, metrics }: ReadoutCardProps) {
-	const stats: Array<{ label: string; value: string }> = [
-		{ label: "Entropy", value: `${metrics.entropy}/5` },
-		{ label: "Rhythm", value: `${metrics.regularity}/5` },
-		{ label: "Human-likeness", value: `${metrics.humanScore}/5` },
-		{ label: "Average hold", value: `${Math.round(metrics.avgHoldMs)} ms` },
+	const stats: Array<{ label: string; value: string; note?: string }> = [
+		{
+			label: "Entropy",
+			value: `${round1(metrics.entropyBits).toFixed(1)} bits`,
+		},
+		{ label: "Rhythm", value: `${metrics.medianGapMs} ms` },
+		{
+			label: "Human-likeness",
+			value: `${round1(metrics.humanScore).toFixed(1)}/5`,
+			note: `95% CI ${round1(metrics.humanScoreCi95[0]).toFixed(1)}–${round1(metrics.humanScoreCi95[1]).toFixed(1)}`,
+		},
+		{ label: "Average hold", value: `${metrics.avgHoldMs} ms` },
 		{
 			label: "Backspace rate",
 			value: `${Math.round(metrics.backspaceRate * 100)}%`,
 		},
 	];
+	const result = metrics.verdict;
 
 	return (
-		<section className="mt-10">
-			<h3 className="text-xs font-medium uppercase tracking-wide text-[var(--muted)]">
-				Readout
-			</h3>
-			<p className="mt-4 font-readout text-base leading-relaxed text-[var(--text)]">
+		<section aria-labelledby="readout-heading">
+			<div className="flex flex-wrap items-baseline justify-between gap-3">
+				<h2
+					id="readout-heading"
+					className="font-display text-3xl font-extrabold tracking-tight text-[var(--ink)]"
+				>
+					Readout
+				</h2>
+				<span className={TONE_CLASS[result.tone]}>{result.label}</span>
+			</div>
+			<p className="mt-3 font-readout text-[0.95rem] leading-relaxed text-[var(--ink)]">
 				{readout}
 			</p>
-			<dl className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
+			<dl className="mt-6 divide-y divide-[var(--rule)] border-y border-[var(--rule)]">
 				{stats.map((stat) => (
-					<Stat key={stat.label} label={stat.label} value={stat.value} />
+					<div
+						key={stat.label}
+						className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-3"
+					>
+						<dt className="font-display text-[0.85rem] text-[var(--ink-2)]">
+							{stat.label}
+							{stat.note !== undefined && (
+								<span className="ml-2 font-readout text-xs tabular-nums text-[var(--ink-3)]">
+									{" "}
+									{stat.note}
+								</span>
+							)}
+						</dt>
+						<dd className="font-readout text-xl font-medium tabular-nums text-[var(--ink)]">
+							{stat.value}
+						</dd>
+					</div>
 				))}
 			</dl>
+			{metrics.pauseCount > 0 && (
+				<p className="mt-3 text-xs text-[var(--ink-3)]">
+					{metrics.pauseCount} pause{metrics.pauseCount === 1 ? "" : "s"} over
+					1.2 s excluded from the gap statistics.
+				</p>
+			)}
 			{metrics.flags.length > 0 && (
 				<ul className="mt-4 flex flex-wrap gap-2">
 					{metrics.flags.map((flag) => (
-						<li
-							key={flag}
-							className="rounded-full border border-[var(--readout-border)] bg-[var(--readout-bg)] px-3 py-1 text-xs font-medium uppercase tracking-wide text-[var(--accent)]"
-						>
+						<li key={flag} className="chip chip-warn">
 							{flag}
 						</li>
 					))}
